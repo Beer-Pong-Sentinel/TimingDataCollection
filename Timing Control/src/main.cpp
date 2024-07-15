@@ -1,42 +1,47 @@
 /**
-* @brief Blink: Turns on an LED for one second then off for
-* one second and then repeats.
+* @brief Timing Control
 */
 
 #include "Arduino.h"
 
-//Set LED_BUILTIN if it is not defined by Arduino framework
-#define LED_BUILTIN PC13
+/*
+  Ports definition, consult pinout for selection.
+  D - digital 
+  A - analog
+*/
+#define D_TRIGGER_CONTROL PB11 
+#define A_BEAM_READ       PB1
 
 /**
- * @brief Initialize LED pin as digital write.
+ * 
+ * @brief hits the solenoid trigger for press_delay of milliseconds
+ * @param press_delay
+ * @retval none
+ */
+void press_trigger(int press_delay) 
+{
+  digitalWrite(D_TRIGGER_CONTROL, HIGH);
+  delay(press_delay);
+  digitalWrite(D_TRIGGER_CONTROL, LOW);
+}
+
+/**
+ * @brief 
  * @param none
  * @retval none
  */
 void setup()
 {
-  //initialize LED digital pin as an output
-  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(D_TRIGGER_CONTROL, OUTPUT);
+  pinMode(A_BEAM_READ, INPUT);
 }
 
 /**
- * @brief Turn LED on for 1 sec and off for 1 sec.
+ * @brief 
  * @param none
  * @retval none
  */
 void loop()
 {
-uint32_t delay_ms = 1000;
 
-  //turn LED on (HIGH is the voltage level)
-  digitalWrite(LED_BUILTIN, HIGH);
-
-  //wait for one second
-  delay(delay_ms);
-
-  //turn LED off (LOW sets voltage to GND)
-  digitalWrite(LED_BUILTIN, LOW);
-
-  //wait one more second
-  delay(delay_ms);
 }
