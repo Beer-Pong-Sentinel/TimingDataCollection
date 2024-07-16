@@ -6,7 +6,7 @@
 #include "Arduino.h"
 
 //Set LED_BUILTIN if it is not defined by Arduino framework
-#define LED_BUILTIN PB13
+#define LED_BUILTIN PA5
 
 /**
  * @brief Initialize LED pin as digital write.
