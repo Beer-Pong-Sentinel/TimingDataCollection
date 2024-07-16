@@ -12,6 +12,7 @@
 #define D_TRIGGER_CONTROL PB11 
 #define A_BEAM_READ       PB1
 #define D_USER_LED        PC13
+#define D_USER_BUTTON     PA0
 
 /**
  * 
@@ -43,10 +44,9 @@ void setup()
   pinMode(D_TRIGGER_CONTROL, OUTPUT);
   pinMode(A_BEAM_READ, INPUT);
 
-  //pinMode(D_USER_BUTTON, INPUT_PULLDOWN);
-  pinMode(D_USER_LED, OUTPUT);
-  
-  //attachInterrupt(digitalPinToInterrupt(D_USER_BUTTON), irq_handler, RISING);
+  pinMode(D_USER_BUTTON, INPUT_PULLUP);
+  pinMode(D_USER_LED, OUTPUT);  
+  attachInterrupt(digitalPinToInterrupt(D_USER_BUTTON), irq_handler, RISING);
 
 }
 
@@ -57,5 +57,10 @@ void setup()
  */
 void loop()
 {
+  digitalWrite(D_TRIGGER_CONTROL, LOW);
 
+  if(true)  // take readings only from the moment 
+  {
+    val = analogRead(A_BEAM_READ);
+  }
 }
