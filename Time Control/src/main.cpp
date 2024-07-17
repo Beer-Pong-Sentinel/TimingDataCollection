@@ -14,6 +14,9 @@
 #define D_USER_LED        PC13
 #define D_USER_BUTTON     PA0
 
+
+bool startProcedure;
+
 /**
  * 
  * @brief hits the solenoid trigger for press_delay of milliseconds
@@ -26,12 +29,20 @@ void press_trigger(int press_delay)
   delay(press_delay);
   digitalWrite(D_TRIGGER_CONTROL, LOW);
 }
+
+/**
+ * 
+ * @brief This inturrept will be used to start the testing procedure
+ * @param 
+ * @retval none
+ */
 void irq_handler()
 {
-  digitalWrite(D_USER_LED, HIGH);
-  press_trigger(1000);
-  digitalWrite(D_USER_LED, LOW);
-
+  //digitalWrite(D_USER_LED, HIGH);
+ // press_trigger(1000);
+  //digitalWrite(D_USER_LED, LOW);
+  int value = analogRead(A_BEAM_READ);
+  Serial.println(value);
 }
 
 /**
@@ -46,7 +57,12 @@ void setup()
 
   pinMode(D_USER_BUTTON, INPUT_PULLUP);
   pinMode(D_USER_LED, OUTPUT);  
+
   attachInterrupt(digitalPinToInterrupt(D_USER_BUTTON), irq_handler, RISING);
+
+  Serial.begin(9600);
+
+  Serial.write(("Hello World"));
 
 }
 
@@ -61,6 +77,6 @@ void loop()
 
   if(true)  // take readings only from the moment 
   {
-    val = analogRead(A_BEAM_READ);
+    //Serial.write((A_BEAM_READ));
   }
 }
