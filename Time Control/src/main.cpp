@@ -14,7 +14,7 @@
 #define D_USER_LED        PC13
 #define D_USER_BUTTON     PA0
 
-#define SOLENOID_DELAY    100   // This value must be determinds
+#define SOLENOID_DELAY    50   // This value must be determinds
 #define BEAM_THRESHOLD    1023
 
 #define START_TEST        0b100
