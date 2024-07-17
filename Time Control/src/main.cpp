@@ -14,8 +14,14 @@
 #define D_USER_LED        PC13
 #define D_USER_BUTTON     PA0
 
+#define SOLENOID_DELAY    100   // This value must be determinds
 
-bool startProcedure;
+#define BEFORE_SOLENOID   0b01
+#define AFTER_SOLENOID    0b10
+#define BEAM_READ         0b11       
+
+
+bool startProcedure = false;
 
 /**
  * 
@@ -38,11 +44,32 @@ void press_trigger(int press_delay)
  */
 void irq_handler()
 {
+  startProcedure = true;
+
   //digitalWrite(D_USER_LED, HIGH);
- // press_trigger(1000);
-  //digitalWrite(D_USER_LED, LOW);
-  int value = analogRead(A_BEAM_READ);
-  Serial.println(value);
+  // press_trigger(SOLENOID_DELAY);            
+  //digitalWrite(D_USER_LED, LOW);  
+  uint16_t analogValue = analogRead(A0); // Read analog value (0-1023)
+  uint32_t timeMicros = micros(); // Get the current time in microseconds
+    // Create a 7-byte packet
+  uint8_t packet[7];
+
+  // Pack the identifier and the analog value
+  packet[0] = (BEAM_READ << 6) | (analogValue >> 4); // First byte: 2 bits for identifier + 6 MSB of analogValue
+  packet[1] = (analogValue << 4) & 0xF0; // Second byte: 4 LSB of analogValue
+
+  // Pack the time
+  packet[2] = (timeMicros >> 24) & 0xFF; // Time MSB
+  packet[3] = (timeMicros >> 16) & 0xFF;
+  packet[4] = (timeMicros >> 8) & 0xFF;
+  packet[5] = timeMicros & 0xFF; // Time LSB
+
+  // Pack a checksum or delimiter (optional)
+  packet[6] = 0xFF; // Example delimiter
+
+  // Send the packet
+  Serial.write(packet, 7);
+  delay(1000);
 }
 
 /**
@@ -74,9 +101,12 @@ void setup()
 void loop()
 {
   digitalWrite(D_TRIGGER_CONTROL, LOW);
+  uint16_t analogValue; 
+  uint32_t timeMicros; 
 
-  if(true)  // take readings only from the moment 
+  /*if(startProcedure)  // Start sending the beam values once test procedure started.
   {
-    //Serial.write((A_BEAM_READ));
-  }
+    int value = analogRead(A_BEAM_READ);
+    Serial.println(value);
+  }*/
 }
