@@ -14,8 +14,8 @@
 #define D_USER_LED        PC13
 #define D_USER_BUTTON     PA0
 
-#define SOLENOID_DELAY    50   // This value must be determinds
-#define BEAM_THRESHOLD    1023
+#define SOLENOID_DELAY    75   // This value must be determinds
+#define BEAM_THRESHOLD    800
 
 #define START_TEST        0b100
 #define BEFORE_SOLENOID   0b001
@@ -151,7 +151,7 @@ void loop()
     createPacket(BEAM_READ,  beam_value, packet);
     Serial.write(packet, PACKET_SIZE);
 
-    if (beam_value == BEAM_THRESHOLD) {
+    if (beam_value >= BEAM_THRESHOLD) {
         startProcedure = false;
         createPacket(END_TEST, 0, packet);
         Serial.write(packet, PACKET_SIZE);
