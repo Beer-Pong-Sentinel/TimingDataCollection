@@ -16,9 +16,11 @@
 
 #define SOLENOID_DELAY    100   // This value must be determinds
 
+#define START_TEST        0b100
 #define BEFORE_SOLENOID   0b001
 #define AFTER_SOLENOID    0b010
-#define BEAM_READ         0b011     
+#define BEAM_READ         0b011 
+#define END_TEST          0b110   
 
 #define PACKET_SIZE       7
 
@@ -36,21 +38,6 @@ void press_trigger(int press_delay)
   digitalWrite(D_TRIGGER_CONTROL, HIGH);
   delay(press_delay);
   digitalWrite(D_TRIGGER_CONTROL, LOW);
-}
-
-/**
- * 
- * @brief This inturrept will be used to start the testing procedure
- * @param 
- * @retval none
- */
-void irq_handler()
-{
-  startProcedure = true;
-
-  //digitalWrite(D_USER_LED, HIGH);
-  // press_trigger(SOLENOID_DELAY);            
-  //digitalWrite(D_USER_LED, LOW);  
 }
 
 /**
@@ -79,6 +66,50 @@ void createPacket(uint8_t identifier, uint16_t analogValue, uint8_t* packet) {
     packet[5] = timeMicros & 0xFF; // Time LSB
     packet[6] = 0xFF; // Example delimiter
 }
+
+/**
+ * 
+ * @brief 
+ * @param 
+ * @retval none
+ */
+void timing_test_start()
+{
+  startProcedure = true;
+
+  uint8_t packet[PACKET_SIZE];
+
+  // Send a signal to start the test
+  createPacket(START_TEST,0, packet);
+  Serial.write(packet, PACKET_SIZE);
+
+
+  // Send a signal at the moment before the solenoid is used
+  createPacket(BEFORE_SOLENOID,0, packet);
+  Serial.write(packet, PACKET_SIZE);
+
+  press_trigger(SOLENOID_DELAY);
+
+  // Send a signal at the moment after the solenoid is used
+  createPacket(AFTER_SOLENOID,0, packet);
+  Serial.write(packet, PACKET_SIZE);
+
+  
+}
+/**
+ * 
+ * @brief This inturrept will be used to start the testing procedure
+ * @param 
+ * @retval none
+ */
+void irq_handler()
+{
+  timing_test_start();
+  //digitalWrite(D_USER_LED, HIGH);
+  // press_trigger(SOLENOID_DELAY);            
+  //digitalWrite(D_USER_LED, LOW);  
+}
+
 
 /**
  * @brief 
@@ -112,11 +143,18 @@ void loop()
   
   uint8_t packet[PACKET_SIZE];
 
-  if(startProcedure)  // Start sending the beam values once test procedure started.
+  // When the procedure starts start taking data from the beam breaker
+  if(startProcedure)  
   {
-    createPacket(BEAM_READ,  analogRead(A_BEAM_READ), packet);
+    int beam_value = analogRead(A_BEAM_READ);
+    createPacket(BEAM_READ,  beam_value, packet);
     Serial.write(packet, PACKET_SIZE);
+
+    if (beam_value == 1023) {
+        startProcedure = false;
+        createPacket(END_TEST, 0, packet);
+        Serial.write(packet, PACKET_SIZE);
+    }
   }
  
-  startProcedure = false;
 }
