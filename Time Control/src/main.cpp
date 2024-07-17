@@ -63,14 +63,15 @@ void createPacket(uint8_t identifier, uint16_t analogValue, uint8_t* packet) {
     uint32_t timeMicros = micros();
 
     // Pack the identifier and the analog value (only if identifier is not 1 or 2)
-    if (identifier == 1 || identifier == 2) {
-        // Create a 5-byte packet with only identifier and time
-        packet[0] = identifier << 6; // First byte: 2 bits for identifier, rest are 0
-        packet[1] = 0; // No analog value, second byte is 0
-    } else {
+    if (identifier == BEAM_READ) {
+ 
         // Create a 7-byte packet with identifier, analog value, and time
         packet[0] = (identifier << 6) | (analogValue >> 4); // First byte: 2 bits for identifier + 6 MSB of analogValue
         packet[1] = (analogValue << 4) & 0xF0; // Second byte: 4 LSB of analogValue
+    } else {
+       // Create a 5-byte packet with only identifier and time
+        packet[0] = identifier << 6; // First byte: 2 bits for identifier, rest are 0
+        packet[1] = 0; // No analog value, second byte is 0
     }
     packet[2] = (timeMicros >> 24) & 0xFF; // Time MSB
     packet[3] = (timeMicros >> 16) & 0xFF;
