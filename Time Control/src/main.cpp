@@ -16,9 +16,9 @@
 
 #define SOLENOID_DELAY    100   // This value must be determinds
 
-#define BEFORE_SOLENOID   0b01
-#define AFTER_SOLENOID    0b10
-#define BEAM_READ         0b11     
+#define BEFORE_SOLENOID   0b001
+#define AFTER_SOLENOID    0b010
+#define BEAM_READ         0b011     
 
 #define PACKET_SIZE       7
 
@@ -66,11 +66,11 @@ void createPacket(uint8_t identifier, uint16_t analogValue, uint8_t* packet) {
     if (identifier == BEAM_READ) {
  
         // Create a 7-byte packet with identifier, analog value, and time
-        packet[0] = (identifier << 6) | (analogValue >> 4); // First byte: 2 bits for identifier + 6 MSB of analogValue
-        packet[1] = (analogValue << 4) & 0xF0; // Second byte: 4 LSB of analogValue
+        packet[0] = (identifier << 5) | (analogValue >> 5); // First byte: 3 bits for identifier + 5 MSB of analogValue
+        packet[1] = (analogValue << 3) & 0xF8; // Second byte: 5 LSB of analogValue
     } else {
        // Create a 5-byte packet with only identifier and time
-        packet[0] = identifier << 6; // First byte: 2 bits for identifier, rest are 0
+        packet[0] = identifier << 5; // First byte: 2 bits for identifier, rest are 0
         packet[1] = 0; // No analog value, second byte is 0
     }
     packet[2] = (timeMicros >> 24) & 0xFF; // Time MSB
