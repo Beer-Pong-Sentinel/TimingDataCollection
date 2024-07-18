@@ -43,7 +43,9 @@ void press_trigger(int press_delay)
 
 /**
  * @brief 
- * @param none
+ * @param identifier of the state/stage
+ * @param analogValue an analog value measurment, up to 10bit, optional parameter, pass zero if not used.
+ * @param packet a pointer to the packet array - 7 bytes
  * @retval none
  */
 void createPacket(uint8_t identifier, uint16_t analogValue, uint8_t* packet) {
@@ -70,7 +72,7 @@ void createPacket(uint8_t identifier, uint16_t analogValue, uint8_t* packet) {
 
 /**
  * 
- * @brief 
+ * @brief a simple timing procedure with one cycle, trigger, capture,end
  * @param 
  * @retval none
  */
@@ -105,10 +107,7 @@ void timing_test_start()
  */
 void irq_handler()
 {
-  timing_test_start();
-  //digitalWrite(D_USER_LED, HIGH);
-  // press_trigger(SOLENOID_DELAY);            
-  //digitalWrite(D_USER_LED, LOW);  
+  timing_test_start(); 
 }
 
 
