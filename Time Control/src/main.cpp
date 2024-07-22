@@ -9,9 +9,9 @@
   D - digital 
   A - analog
 */
-#define D_TRIGGER_CONTROL PB11 
+#define D_TRIGGER_CONTROL PB12      // tolerace for 5V
 //#define A_BEAM_READ       PB1
-#define D_BEAM_READ       PB1
+#define D_BEAM_READ       PB11
 #define D_USER_LED        PC13
 #define D_USER_BUTTON     PA0
 
@@ -125,10 +125,12 @@ void setup()
   //pinMode(A_BEAM_READ, INPUT);
   pinMode(D_BEAM_READ, INPUT);
 
-  pinMode(D_USER_BUTTON, INPUT_PULLUP);
+  pinMode(D_USER_BUTTON, INPUT_PULLDOWN);
   pinMode(D_USER_LED, OUTPUT);  
 
   attachInterrupt(digitalPinToInterrupt(D_BEAM_READ), irq_handler, RISING);
+
+  digitalWrite(D_TRIGGER_CONTROL, LOW);
 
   Serial.begin(9600);
 }
@@ -140,10 +142,9 @@ void setup()
  */
 void loop()
 {
-  digitalWrite(D_TRIGGER_CONTROL, LOW);
   
 
-  if(digitalRead(D_USER_BUTTON)) // Low priority to capture click -> start testing procedure
+  if(!startProcedure & digitalRead(D_USER_BUTTON)) // Low priority to capture click -> start testing procedure
   {
     timing_test_start();
   }
