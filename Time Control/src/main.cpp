@@ -97,7 +97,7 @@ void irq_handler()
   //timing_test_start();
   // If the beam breaks when a test procedure is running, stop the procedure
   // NOTE: you might want to change this for more complex procedures to not stop, but rather continue to next step of test
-  if (startProcedure) { 
+  /*if (startProcedure) { 
     createPacket(BEAM_READ, packet);
     Serial.write(packet, PACKET_SIZE);
 
@@ -105,7 +105,10 @@ void irq_handler()
     Serial.write(packet, PACKET_SIZE);
 
     startProcedure = false;
-  }
+  }*/
+  createPacket(BEAM_READ, packet);
+  Serial.write(packet, PACKET_SIZE);
+
 
   
 }
