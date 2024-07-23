@@ -9,6 +9,9 @@
   D - digital 
   A - analog
 */
+
+#define USE_BUFFER        false
+
 #define D_TRIGGER_CONTROL PB12      // tolerace for 5V
 //#define A_BEAM_READ       PB1
 #define D_BEAM_READ       PB11
@@ -26,6 +29,10 @@
 
 #define PACKET_SIZE       5
 
+#if USE_BUFFER == true
+  uint8_t buffer[PACKET_SIZE][PACKET_SIZE]; // The size of this array should be changed depending on the procedure
+  byte buffer_index;
+#endif
 
 bool startProcedure = false;
 uint8_t packet[PACKET_SIZE];
@@ -36,7 +43,7 @@ uint8_t packet[PACKET_SIZE];
  * @param press_delay
  * @retval none
  */
-void press_trigger(int press_delay) 
+void pressTrigger(int press_delay) 
 {
   digitalWrite(D_TRIGGER_CONTROL, HIGH);
   delay(press_delay);
@@ -49,7 +56,7 @@ void press_trigger(int press_delay)
  * @param packet a pointer to the packet array - 7 bytes
  * @retval none
  */
-void createPacket(uint8_t identifier, uint8_t* packet) {
+void createAndSendPacket(uint8_t identifier, uint8_t* packet) {
     uint32_t timeMicros = micros();
 
     packet[0] = (timeMicros >> 24) & 0xFF; // Time MSB
@@ -57,34 +64,45 @@ void createPacket(uint8_t identifier, uint8_t* packet) {
     packet[2] = (timeMicros >> 8) & 0xFF;
     packet[3] = timeMicros & 0xFF; // Time LSB
     packet[4] = (identifier << 5) | 0x1F; 
+
+  #if USE_BUFFER == true
+    memcpy(buffer[buffer_index], packet, PACKET_SIZE * sizeof(uint8_t)); 
+    ++buffer_index;
+    if (buffer_index == 5) buffer_index = 0; // Can be done with modulu but this is faster
+
+  #else
+    Serial.write(packet, PACKET_SIZE);
+  #endif
 }
 
+void sendBuffer(uint8_t buffer[PACKET_SIZE][PACKET_SIZE])
+{
+    for (int i = 0; i < PACKET_SIZE; ++i) {
+        for (int j = 0; j < PACKET_SIZE; ++j) {
+            Serial.write(packet, PACKET_SIZE);
+        }
+    }
+}
 /**
  * 
  * @brief a simple timing procedure with one cycle, trigger, capture,end
  * @param 
  * @retval none
  */
-void timing_test_start()
+void startTimingTest()
 {
   startProcedure = true;
 
   // Send a signal to start the test
-  createPacket(START_TEST, packet);
-  Serial.write(packet, PACKET_SIZE);
-
+  createAndSendPacket(START_TEST, packet);
 
   // Send a signal at the moment before the solenoid is used
-  createPacket(BEFORE_SOLENOID,  packet);
-  Serial.write(packet, PACKET_SIZE);
+  createAndSendPacket(BEFORE_SOLENOID,  packet);
 
-  press_trigger(SOLENOID_DELAY);
+  pressTrigger(SOLENOID_DELAY);
 
   // Send a signal at the moment after the solenoid is used
-  createPacket(AFTER_SOLENOID, packet);
-  Serial.write(packet, PACKET_SIZE);
-
-  
+  createAndSendPacket(AFTER_SOLENOID, packet);
 }
 /**
  * 
@@ -92,25 +110,22 @@ void timing_test_start()
  * @param 
  * @retval none
  */
-void irq_handler()
+void handleIRQ()
 {
   //timing_test_start();
   // If the beam breaks when a test procedure is running, stop the procedure
   // NOTE: you might want to change this for more complex procedures to not stop, but rather continue to next step of test
   if (startProcedure) { 
-    createPacket(BEAM_READ, packet);
-    Serial.write(packet, PACKET_SIZE);
+    createAndSendPacket(BEAM_READ, packet);
 
-    createPacket(END_TEST, packet);
-    Serial.write(packet, PACKET_SIZE);
+    createAndSendPacket(END_TEST, packet);
 
     startProcedure = false;
-  }
-  //createPacket(BEAM_READ, packet);
-  //Serial.write(packet, PACKET_SIZE);
-
-
-  
+    
+    #if USE_BUFFER == true
+      sendBuffer(buffer);
+    #endif
+  } 
 }
 
 
@@ -128,7 +143,7 @@ void setup()
   pinMode(D_USER_BUTTON, INPUT_PULLDOWN);
   pinMode(D_USER_LED, OUTPUT);  
 
-  attachInterrupt(digitalPinToInterrupt(D_BEAM_READ), irq_handler, RISING);
+  attachInterrupt(digitalPinToInterrupt(D_BEAM_READ), handleIRQ, RISING);
 
   digitalWrite(D_TRIGGER_CONTROL, LOW);
 
@@ -142,26 +157,10 @@ void setup()
  */
 void loop()
 {
-  
 
   if(!startProcedure & digitalRead(D_USER_BUTTON)) // Low priority to capture click -> start testing procedure
   {
-    timing_test_start();
+    startTimingTest();
   }
 
-  // When the procedure starts start taking data from the beam breaker
-  /*
-  if(startProcedure)  
-  {
-    int beam_value = analogRead(A_BEAM_READ);
-    createPacket(BEAM_READ,  beam_value, packet);
-    Serial.write(packet, PACKET_SIZE);
-
-    if (beam_value >= BEAM_THRESHOLD) {
-        startProcedure = false;
-        createPacket(END_TEST, 0, packet);
-        Serial.write(packet, PACKET_SIZE);
-    }
-  }
- */
 }
