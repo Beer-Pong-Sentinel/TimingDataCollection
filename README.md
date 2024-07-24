@@ -61,3 +61,10 @@ The following modules are used in this test -
 3. Solenoid Control Module
 
 NOTE: Everything *must* be connected to the same ground.
+
+#### Beam Breaker 
+The beam breaker circuit invovles the following connections -
+1. VCC - recommended is 3.3/5V
+2. Phototransistor connection with a variable resistor - recommended 180Ω
+
+![Beam Breaker](beam_breaker.png)

@@ -10,15 +10,15 @@
   A - analog
 */
 
-#define USE_BUFFER        false
+#define USE_BUFFER        true
 
-#define D_TRIGGER_CONTROL PB12      // tolerace for 5V
+#define D_TRIGGER_CONTROL PB12      
 //#define A_BEAM_READ       PB1
-#define D_BEAM_READ       PB11
+#define D_BEAM_READ       PB11  // tolerace for 5V
 #define D_USER_LED        PC13
 #define D_USER_BUTTON     PA0
 
-#define SOLENOID_DELAY    75   // This value must be determinds
+#define SOLENOID_DELAY    25    // This value must be determinds
 #define BEAM_THRESHOLD    800
 
 #define START_TEST        0b100
@@ -78,9 +78,8 @@ void createAndSendPacket(uint8_t identifier, uint8_t* packet) {
 void sendBuffer(uint8_t buffer[PACKET_SIZE][PACKET_SIZE])
 {
     for (int i = 0; i < PACKET_SIZE; ++i) {
-        for (int j = 0; j < PACKET_SIZE; ++j) {
-            Serial.write(packet, PACKET_SIZE);
-        }
+      Serial.write(buffer[i], PACKET_SIZE);
+      delay(300);
     }
 }
 /**
@@ -97,12 +96,12 @@ void startTimingTest()
   createAndSendPacket(START_TEST, packet);
 
   // Send a signal at the moment before the solenoid is used
-  createAndSendPacket(BEFORE_SOLENOID,  packet);
+  //createAndSendPacket(BEFORE_SOLENOID,  packet);
 
   pressTrigger(SOLENOID_DELAY);
 
   // Send a signal at the moment after the solenoid is used
-  createAndSendPacket(AFTER_SOLENOID, packet);
+  //createAndSendPacket(AFTER_SOLENOID, packet);
 }
 /**
  * 
@@ -118,7 +117,7 @@ void handleIRQ()
   if (startProcedure) { 
     createAndSendPacket(BEAM_READ, packet);
 
-    createAndSendPacket(END_TEST, packet);
+    //createAndSendPacket(END_TEST, packet);
 
     startProcedure = false;
     
